@@ -15,6 +15,8 @@
   --border:#272A35;
   --ok:#4ADE80;
   --warn:#FBBF24;
+  --gold:#E8C37E;
+  --gold-2:#C9963F;
 
   --container:1240px;
   --gutter:clamp(18px, 4vw, 64px);
@@ -87,6 +89,25 @@ img,video{display:block;max-width:100%}
   border-color:transparent;color:#08090D;
 }
 .btn-accent:hover{box-shadow:0 14px 40px rgba(34,211,238,.22)}
+/* золотая «вторая кнопка» — такая же сочная, как акцентная, но другого цвета */
+.btn-secondary{
+  background:linear-gradient(120deg,var(--gold),var(--gold-2));
+  border-color:transparent;color:#1A1206;
+}
+.btn-secondary:hover{
+  background:linear-gradient(120deg,#F2D192,#D8A54C);
+  box-shadow:0 14px 40px rgba(232,195,126,.28);
+}
+/* пробегающий блик на цветных кнопках */
+.btn-accent,.btn-secondary{position:relative;overflow:hidden}
+.btn-accent::after,.btn-secondary::after{
+  content:"";position:absolute;top:-60%;bottom:-60%;left:0;width:38%;
+  background:linear-gradient(105deg,transparent,rgba(255,255,255,.55),transparent);
+  transform:skewX(-20deg) translateX(-180%);
+  transition:transform 750ms var(--ease);
+  pointer-events:none;
+}
+.btn-accent:hover::after,.btn-secondary:hover::after{transform:skewX(-20deg) translateX(430%)}
 .btn-sm{min-height:40px;padding:0 16px;font-size:13px}
 .link-u{border-bottom:1px solid currentColor;color:var(--muted);transition:color var(--tr)}
 .link-u:hover{color:var(--text)}
@@ -136,6 +157,9 @@ body.menu-open{overflow:hidden}
 }
 .hero-media,.hero-fallback,.hero-veil{position:absolute;inset:0;width:100%;height:100%}
 .hero-media{z-index:-3;object-fit:cover;opacity:.9}
+/* «дыхание» кадра — медленный кинематографичный наезд */
+.hero-media,.hero-fallback{animation:kenburns 26s var(--ease) infinite alternate}
+@keyframes kenburns{from{transform:scale(1.03)}to{transform:scale(1.13)}}
 .hero-fallback{
   z-index:-4;
   background-color:#0A0912;
@@ -183,9 +207,12 @@ body.menu-open{overflow:hidden}
 .stat b{
   display:block;font-size:clamp(26px,3.4vw,44px);line-height:1;letter-spacing:-.04em;
   font-weight:600;
-  background:linear-gradient(120deg,var(--text),var(--accent-2));
+  background:linear-gradient(120deg,var(--text),var(--accent-2),var(--text));
+  background-size:200% 100%;
   -webkit-background-clip:text;background-clip:text;color:transparent;
+  animation:shimmer 7s linear infinite;
 }
+@keyframes shimmer{from{background-position:0% 0}to{background-position:200% 0}}
 .stat span{display:block;margin-top:10px;color:var(--muted);font-size:13px;line-height:1.5}
 
 /* ---------- каталог ---------- */
@@ -234,6 +261,9 @@ body.menu-open{overflow:hidden}
 .card.sold{opacity:.72}
 .card-img{position:relative;aspect-ratio:4/3;overflow:hidden;background:var(--surface-2)}
 .card-img img,.card-img svg{width:100%;height:100%;object-fit:cover}
+/* заглушка-подложка лежит ПОД фото: если файла нет, фото исчезает (onerror) и видна заглушка */
+.card-img>svg,.modal-img>svg,.dir-photo>svg{position:absolute;inset:0}
+.card-img>img,.modal-img>img,.dir-photo>img{position:relative;z-index:1}
 .card:hover .card-img img{transform:scale(1.04)}
 .card-img img{transition:transform 700ms var(--ease)}
 .badges{position:absolute;left:12px;top:12px;display:flex;flex-wrap:wrap;gap:6px}
@@ -312,6 +342,19 @@ body.menu-open{overflow:hidden}
 .rv-text{margin:0;font-size:15px;line-height:1.65;color:var(--text)}
 .rv-who{margin-top:auto;color:var(--muted);font-size:13px}
 .rv-who b{color:var(--text);font-weight:600;display:block}
+/* Честный текст вместо карточек, пока список отзывов пустой (решение Венеры 09.10) */
+.rv-note{
+  grid-column:1/-1;max-width:860px;width:100%;margin:0 auto;
+  padding:clamp(26px,4vw,38px) clamp(24px,4vw,44px);
+  border:1px solid var(--border);border-left:2px solid var(--accent);
+  border-radius:var(--radius);
+  background:linear-gradient(180deg,var(--surface-2),var(--surface));
+}
+.rv-note p{margin:0 0 12px;font-size:clamp(15px,1.6vw,17px);line-height:1.75;color:var(--text)}
+.rv-note .rv-note-invite{
+  margin:18px 0 0;padding-top:16px;border-top:1px dashed var(--border);
+  font-size:14px;line-height:1.6;color:var(--muted);
+}
 
 /* ---------- формы ---------- */
 .form-wrap{
@@ -381,6 +424,11 @@ body.menu-open{overflow:hidden}
   background:linear-gradient(120deg,var(--accent-2),var(--accent));
   color:#08090D;font-weight:650;font-size:14px;
   box-shadow:0 16px 40px rgba(0,0,0,.5);
+  animation:fabPulse 3.2s ease-in-out infinite;
+}
+@keyframes fabPulse{
+  0%,100%{box-shadow:0 16px 40px rgba(0,0,0,.5),0 0 0 0 rgba(34,211,238,.35)}
+  50%{box-shadow:0 16px 40px rgba(0,0,0,.5),0 0 0 16px rgba(34,211,238,0)}
 }
 
 /* ---------- модальное окно объекта ---------- */
@@ -400,7 +448,7 @@ body.menu-open{overflow:hidden}
   width:40px;height:40px;border-radius:50%;cursor:pointer;
   border:1px solid var(--border);background:rgba(8,9,13,.7);color:var(--text);font-size:18px;
 }
-.modal-img{aspect-ratio:16/9;background:var(--surface-2)}
+.modal-img{position:relative;aspect-ratio:16/9;background:var(--surface-2);overflow:hidden}
 .modal-img img,.modal-img svg{width:100%;height:100%;object-fit:cover}
 .modal-in{padding:clamp(20px,3vw,34px);display:grid;gap:18px}
 .modal-in h2{margin:0;font-size:clamp(22px,2.8vw,32px);letter-spacing:-.035em;line-height:1.15}
@@ -450,4 +498,79 @@ body.menu-open{overflow:hidden}
   *{animation:none!important;transition:none!important}
   .rv-in{opacity:1;transform:none}
   html{scroll-behavior:auto}
+}
+
+/* ===========================================================
+   ТИХИЕ ЖИВЫЕ ЭФФЕКТЫ (добавлено 09.10 ночью)
+   Всё сдержанно и «дорого»: никаких циркачей — полоска прогресса,
+   вход первого экрана, лесенка карточек, счёт цифр, линия раздела,
+   мягкое окно объекта. При prefers-reduced-motion глобальный
+   выключатель выше уже гасит все animation/transition.
+   =========================================================== */
+
+/* Полоска прочтения страницы: растёт слева направо по мере прокрутки */
+.scroll-progress{
+  position:fixed;top:0;left:0;right:0;height:3px;z-index:130;
+  background:linear-gradient(90deg,var(--accent-2),var(--accent));
+  transform:scaleX(0);transform-origin:left;
+  pointer-events:none;opacity:.85;
+}
+
+/* Кнопка «наверх»: всплывает после первого экрана */
+.to-top{
+  position:fixed;right:18px;bottom:18px;z-index:95;
+  width:46px;height:46px;border-radius:50%;
+  border:1px solid var(--border);background:rgba(17,19,26,.86);
+  color:var(--text);font-size:17px;line-height:1;cursor:pointer;
+  backdrop-filter:blur(8px);
+  opacity:0;visibility:hidden;transform:translateY(10px);
+  transition:opacity var(--tr),transform var(--tr),visibility var(--tr),
+             border-color var(--tr),color var(--tr);
+}
+.to-top.show{opacity:1;visibility:visible;transform:none}
+.to-top:hover{border-color:var(--accent-2);color:var(--accent-2)}
+
+/* Первый экран: содержимое входит снизу по очереди, без мельтешения */
+@keyframes heroIn{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+.hero-in>*{animation:heroIn 900ms var(--ease) both}
+.hero-in>*:nth-child(2){animation-delay:90ms}
+.hero-in>*:nth-child(3){animation-delay:180ms}
+.hero-in>*:nth-child(4){animation-delay:270ms}
+
+/* Подсказка «страница продолжается»: тонкая линия с бегущей точкой */
+.hero-cue{
+  position:absolute;left:50%;bottom:8px;width:1px;height:46px;
+  background:linear-gradient(180deg,transparent,rgba(245,247,250,.30));
+}
+.hero-cue span{
+  position:absolute;left:-2px;top:0;width:5px;height:5px;border-radius:50%;
+  background:var(--accent-2);
+  animation:cueRun 2800ms var(--ease) infinite;
+}
+@keyframes cueRun{
+  0%{transform:translateY(0);opacity:0}
+  18%{opacity:1}
+  82%{opacity:1}
+  100%{transform:translateY(40px);opacity:0}
+}
+
+/* Карточки входят лесенкой: у каждой свой --i (задержка), ставится в site.js */
+@keyframes cardIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.card.card-in{animation:cardIn 620ms var(--ease) both;animation-delay:calc(var(--i,0) * 55ms)}
+
+/* Линия у заголовка раздела вытягивается, когда раздел доскроллили */
+.sec-head::after{transform-origin:left}
+.sec-head.line-in::after{transform:scaleX(0);transition:transform 900ms var(--ease) 120ms}
+.sec-head.line-in.seen::after{transform:scaleX(1)}
+
+/* Окно объекта открывается мягко, а не «прыгает» */
+@keyframes modalIn{from{opacity:0;transform:translateY(16px) scale(.985)}to{opacity:1;transform:none}}
+.modal.open .modal-box{animation:modalIn 380ms var(--ease)}
+
+/* Нажатие кнопки — лёгкий осязаемый отклик */
+.btn:active{transform:scale(.975)}
+
+@media (max-width:760px){
+  .to-top{bottom:82px}   /* выше плавающей кнопки звонка */
+  .hero-cue{display:none}
 }

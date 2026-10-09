@@ -68,7 +68,12 @@
       '</svg>';
   }
   function photoHtml(o, big) {
-    if (o.photo) return '<img src="' + esc(o.photo) + '" alt="' + esc(o.title) + '" loading="lazy">';
+    if (o.photo) {
+      /* За фото лежит заглушка-подложка: если файл не загрузили (onerror),
+         карточка не останется с битой картинкой — покажется заглушка. */
+      var bg = placeholder(o).replace('role="img" aria-label="Фото объекта появится здесь"', 'aria-hidden="true"');
+      return bg + '<img src="' + esc(o.photo) + '" alt="' + esc(o.title) + '" loading="lazy" onerror="this.remove()">';
+    }
     return placeholder(o);
   }
 
@@ -123,7 +128,12 @@
         return '<div class="rv-item rv-in"><div class="rv-stars" aria-label="Оценка ' + (r.stars || 5) + ' из 5">' + stars + '</div>' +
           '<p class="rv-text">' + esc(r.text) + '</p>' +
           '<div class="rv-who"><b>' + esc(r.name) + '</b>' + esc(r.deal || '') + '</div></div>';
-      }).join('') : '<div class="empty rv-in"><b>Отзывов пока нет</b>Будем рады, если вы станете первым — напишите пару слов о сделке.</div>';
+      }).join('') :
+        '<div class="rv-note rv-in">' +
+          '<p>Мы публикуем только настоящие отзывы с разрешения клиентов. После каждой сделки Раиса Ивановна лично связывается с клиентом и просит поделиться впечатлениями.</p>' +
+          '<p>Первые отзывы появятся здесь в ближайшее время — мы начали собирать их совсем недавно.</p>' +
+          '<p class="rv-note-invite">Уже работали с «Атлантой»? Форма ниже — ваш отзыв может стать первым.</p>' +
+        '</div>';
     }
 
     var map = $('#map-frame');
@@ -190,7 +200,7 @@
     return out;
   }
 
-  function cardHtml(o) {
+  function cardHtml(o, idx) {
     var p = priceOf(o);
     var badges = '<span class="badge badge-' + (o.type === 'sale' ? 'sale' : o.type === 'newbuild' ? 'new' : o.type === 'rent' ? 'rent' : 'req') + '">' + TYPE_LABEL[o.type] + '</span>';
     if (o.status === 'sold') badges += '<span class="badge badge-sold">Продано</span>';
@@ -203,7 +213,7 @@
     if (o.floor && o.floor !== '—') specs.push('этаж ' + o.floor);
     if (o.added) specs.push('добавлено ' + o.added);
 
-    return '<article class="card' + (o.status === 'active' ? '' : ' sold') + ' rv-in">' +
+    return '<article class="card card-in' + (o.status === 'active' ? '' : ' sold') + '" style="--i:' + (idx % 12) + '">' +
       '<div class="card-img">' + photoHtml(o) + '<div class="badges">' + badges + '</div></div>' +
       '<div class="card-body">' +
       '<h3 class="card-title">' + esc(o.title) + '</h3>' +
@@ -328,6 +338,39 @@
     });
   }
 
+  /* ---------- цифры доверия: счёт от нуля до значения ----------
+     Готовое число УЖЕ стоит в разметке (его рисует fillStatic), поэтому
+     без анимации — старый браузер, нет IntersectionObserver, включён
+     режим «меньше движения» — посетитель сразу видит итоговое значение.
+     Крутим только небольшие числа (30, 9, 7): годы вроде 1995 не трогаем. */
+  function countStat(b) {
+    var m = b.textContent.match(/\d+/);
+    if (!m) return;
+    var target = parseInt(m[0], 10);
+    if (isNaN(target) || target > 1000) return;
+    var prefix = b.textContent.slice(0, m.index);
+    var suffix = b.textContent.slice(m.index + m[0].length);
+    var t0 = null, dur = 1100;
+    function step(ts) {
+      if (t0 === null) t0 = ts;
+      var k = Math.min(1, (ts - t0) / dur);
+      var e = 1 - Math.pow(1 - k, 3);   /* плавно к концу */
+      b.textContent = prefix + Math.round(target * e) + suffix;
+      if (k < 1) window.requestAnimationFrame(step);
+    }
+    window.requestAnimationFrame(step);
+  }
+  function wireStatsCount() {
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!('IntersectionObserver' in window) || reduce || !window.requestAnimationFrame) return;
+    var io = new IntersectionObserver(function (en) {
+      en.forEach(function (e) {
+        if (e.isIntersecting) { io.unobserve(e.target); countStat(e.target); }
+      });
+    }, { threshold: 0.4 });
+    document.querySelectorAll('#stats .stat b').forEach(function (b) { io.observe(b); });
+  }
+
   /* ---------- шапка, меню, появление блоков ---------- */
   function wireUI() {
     var hdr = $('#hdr'), burger = $('#burger');
@@ -351,10 +394,31 @@
       var io = new IntersectionObserver(function (en) {
         en.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('seen'); io.unobserve(e.target); } });
       }, { rootMargin: '0px 0px -8% 0px' });
-      var watch = function () { document.querySelectorAll('.rv-in:not(.seen)').forEach(function (el) { io.observe(el); }); };
+      /* линии у заголовков разделов оживают только когда анимации доступны:
+         без IntersectionObserver класс line-in не ставится и линия видна сразу */
+      document.querySelectorAll('.sec-head').forEach(function (el) { el.classList.add('line-in'); });
+      var watch = function () {
+        document.querySelectorAll('.rv-in:not(.seen), .sec-head.line-in:not(.seen)').forEach(function (el) { io.observe(el); });
+      };
       watch(); window.__reobserve = watch;
     } else {
       document.querySelectorAll('.rv-in').forEach(function (el) { el.classList.add('seen'); });
+    }
+
+    /* полоска прочтения страницы и кнопка «наверх» */
+    var prog = $('#scroll-progress'), toTop = $('#to-top');
+    var onProgress = function () {
+      var doc = document.documentElement;
+      var h = (doc.scrollHeight || 0) - window.innerHeight;
+      var p = h > 0 ? Math.min(1, window.scrollY / h) : 0;
+      if (prog) prog.style.transform = 'scaleX(' + p.toFixed(4) + ')';
+      if (toTop) toTop.classList.toggle('show', window.scrollY > 600);
+    };
+    window.addEventListener('scroll', onProgress, { passive: true }); onProgress();
+    if (toTop) {
+      toTop.addEventListener('click', function () {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
     }
 
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
@@ -367,12 +431,37 @@
     var year = $('#year'); if (year) year.textContent = new Date().getFullYear();
   }
 
+  /* ---------- лёгкий параллакс первого экрана ----------
+     Текст героя при прокрутке чуть отстаёт и тает — эффект глубины,
+     как в кино. Отключается, если в системе выбрано «меньше движения». */
+  function wireParallax() {
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var heroIn = document.querySelector('.hero-in');
+    if (!heroIn || reduce || !window.requestAnimationFrame) return;
+    var ticking = false;
+    var apply = function () {
+      var y = window.scrollY || window.pageYOffset || 0;
+      var h = window.innerHeight || 800;
+      if (y <= h) {
+        heroIn.style.transform = 'translateY(' + (y * 0.14).toFixed(1) + 'px)';
+        heroIn.style.opacity = Math.max(0, 1 - y / (h * 0.85)).toFixed(2);
+      }
+      ticking = false;
+    };
+    window.addEventListener('scroll', function () {
+      if (!ticking) { ticking = true; window.requestAnimationFrame(apply); }
+    }, { passive: true });
+    apply();
+  }
+
   function init() {
     fillStatic();
     buildTabs();
     buildDistricts();
     wireForms();
     wireUI();
+    wireStatsCount();
+    wireParallax();
     render();
 
     var f = $('#filters');

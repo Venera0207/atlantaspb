@@ -19,8 +19,10 @@
   <meta property="og:description" content="Продажа, покупка, аренда квартир и новостройки. Одобрение ипотеки любой сложности. Сопровождение сделки от первого звонка до передачи ключей.">
   <meta property="og:url" content="https://ДОМЕН-АГЕНТСТВА.ru/">
   <meta property="og:site_name" content="АН «Атланта»">
-  <!-- Заменить на настоящую обложку: фото Дворцовой или лучшего объекта, 1200×630 -->
-  <meta property="og:image" content="photos/og-cover.jpg">
+  <!-- Обложка для предпросмотра ссылок (WhatsApp, Telegram, ВКонтакте):
+       файл photos/og-cover.jpg, 1200×630, Нева и Зимний. Адрес абсолютный —
+       мессенджеры читают картинку только по прямой ссылке. -->
+  <meta property="og:image" content="https://venera0207.github.io/atlantaspb/photos/og-cover.jpg">
 
   <link rel="stylesheet" href="style.css">
 
@@ -48,6 +50,9 @@
 </head>
 
 <body>
+  <!-- Тонкая полоска-прогресс в самом верху: показывает, сколько страницы пройдено -->
+  <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+
   <div class="devbar" id="devbar" role="note"></div>
 
   <!-- ================= ШАПКА ================= -->
@@ -100,7 +105,7 @@
         </p>
         <div class="hero-acts">
           <a class="btn" href="#objects" id="hero-btn1">Смотреть объекты <span aria-hidden="true">↓</span></a>
-          <a class="btn btn-ghost" href="tel:+79110055741" id="hero-btn2" data-tel-href>Позвонить в агентство</a>
+          <a class="btn btn-secondary" href="tel:+79110055741" id="hero-btn2" data-tel-href>Позвонить в агентство</a>
           <a class="btn btn-ghost" data-wa target="_blank" rel="noopener" href="https://wa.me/79110055741">WhatsApp</a>
         </div>
       </div>
@@ -109,6 +114,8 @@
         <span data-address>Санкт-Петербург, Шлиссельбургский проспект, 24, корпус 1</span>
         <span class="hero-scroll" data-metro>8 минут пешком от метро «Рыбацкое»</span>
       </div>
+      <!-- Тихая подсказка «страница продолжается»: линия с бегущей точкой -->
+      <div class="hero-cue" aria-hidden="true"><span></span></div>
     </section>
 
     <!-- ================= ЦИФРЫ ================= -->
@@ -176,7 +183,7 @@
 
         <div class="hero-acts" style="margin-top:34px">
           <a class="btn btn-accent" href="#sell">У меня есть объект — хочу продать или сдать</a>
-          <a class="btn btn-ghost" href="#lead">Подобрать квартиру мне</a>
+          <a class="btn btn-secondary" href="#lead">Подобрать квартиру мне</a>
         </div>
       </div>
     </section>
@@ -199,7 +206,10 @@
 
         <div class="dir">
           <div class="dir-photo">
-            <!-- Положить фото директора в папку photos и прописать путь здесь -->
+            <!-- Фото директора: файл photos/director.jpg. Пока файла нет —
+                 картинка не появится (onerror уберёт её), и будет видна заглушка ниже. -->
+            <img src="photos/director.jpg" onerror="this.remove()"
+                 alt="Раиса Ивановна Каштанова — генеральный директор агентства недвижимости «Атланта»">
             <svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Фото директора агентства">
               <defs>
                 <linearGradient id="dgr" x1="0" y1="0" x2="1" y2="1">
@@ -232,7 +242,7 @@
 
             <div class="hero-acts">
               <a class="btn" href="tel:+79110055741" data-tel-href>Позвонить в агентство</a>
-              <a class="btn btn-ghost" href="#lead">Задать вопрос</a>
+              <a class="btn btn-secondary" href="#lead">Задать вопрос</a>
             </div>
 
             <p class="form-note" style="margin-top:20px">
@@ -248,9 +258,17 @@
       <div class="container">
         <div class="sec-head"><span class="sec-num">04</span><span class="eyebrow">Отзывы клиентов</span></div>
         <h2 class="sec-title" id="reviews-title">Нас рекомендуют близким</h2>
-        <p class="sec-sub" style="margin-bottom:34px">Отзывы публикуются с разрешения клиентов — так, как они пришли: на почту или в WhatsApp.</p>
+        <p class="sec-sub" style="margin-bottom:34px">Клиенты присылают отзывы на почту или в WhatsApp — так они и попадают на сайт.</p>
 
-        <div class="rv" id="reviews-list"></div>
+        <div class="rv" id="reviews-list">
+          <!-- Запасная копия честного текста: видна только если скрипты не загрузились.
+               Обычно список наполняет site.js из файла objects.js. -->
+          <div class="rv-note">
+            <p>Мы публикуем только настоящие отзывы с разрешения клиентов. После каждой сделки Раиса Ивановна лично связывается с клиентом и просит поделиться впечатлениями.</p>
+            <p>Первые отзывы появятся здесь в ближайшее время — мы начали собирать их совсем недавно.</p>
+            <p class="rv-note-invite">Уже работали с «Атлантой»? Форма ниже — ваш отзыв может стать первым.</p>
+          </div>
+        </div>
 
         <div class="form-wrap" style="margin-top:44px">
           <form class="form" data-mailto="review" novalidate>
@@ -295,7 +313,7 @@
               <li>Бесплатная консультация и расчёт стоимости услуг до начала работы</li>
             </ul>
             <div class="hero-acts">
-              <a class="btn btn-ghost" data-wa target="_blank" rel="noopener" href="https://wa.me/79110055741">Написать в WhatsApp</a>
+              <a class="btn btn-secondary" data-wa target="_blank" rel="noopener" href="https://wa.me/79110055741">Написать в WhatsApp</a>
               <a class="btn btn-ghost" data-email href="mailto:atlanta-spb@yandex.ru">Написать на почту</a>
             </div>
           </div>
@@ -458,6 +476,9 @@
   </footer>
 
   <a class="call-fab" href="tel:+79110055741" data-fab="1">📞 Позвонить</a>
+
+  <!-- Кнопка «наверх»: появляется, когда посетитель пролистал первый экран -->
+  <button class="to-top" id="to-top" type="button" aria-label="Наверх" title="Наверх">↑</button>
 
   <!-- ================= ОКНО ОБЪЕКТА ================= -->
   <div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="Карточка объекта">
