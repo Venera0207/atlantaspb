@@ -498,3 +498,281 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();
+
+/* =====================================================================
+   Дополнительная интерактивность (2026-10-14): волна от клика на кнопках,
+   полоса прогресса страницы, 3D-наклон карточек объектов, «магнитные»
+   кнопки первого экрана, неоновоe свечение за курсором.
+   Учитывает prefers-reduced-motion; на touch-устройствах наклон и свечение
+   отключаются — там они не нужны.
+   ===================================================================== */
+(function () {
+  'use strict';
+  var mqReduce = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+  var mqFine = window.matchMedia ? window.matchMedia('(pointer:fine)') : null;
+  function reduced() { return !!(mqReduce && mqReduce.matches); }
+  function fine() { return !!(mqFine && mqFine.matches); }
+
+  /* --- 1. Полоса прогресса чтения --- */
+  (function () {
+    var bar = document.createElement('div');
+    bar.className = 'scroll-progress';
+    bar.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(bar);
+    var ticking = false;
+    function apply() {
+      var h = document.documentElement.scrollHeight - window.innerHeight;
+      bar.style.width = (h > 0 ? Math.min(100, (window.scrollY / h) * 100) : 0).toFixed(2) + '%';
+      ticking = false;
+    }
+    window.addEventListener('scroll', function () {
+      if (!ticking) { ticking = true; requestAnimationFrame(apply); }
+    }, { passive: true });
+    window.addEventListener('resize', apply, { passive: true });
+    apply();
+  })();
+
+  /* --- 2. Волна от клика на любой кнопке --- */
+  document.addEventListener('click', function (e) {
+    if (reduced()) return;
+    var btn = e.target.closest ? e.target.closest('.btn') : null;
+    if (!btn) return;
+    var r = btn.getBoundingClientRect();
+    var d = Math.max(r.width, r.height);
+    var sp = document.createElement('span');
+    sp.className = 'btn-ripple';
+    sp.style.width = sp.style.height = d + 'px';
+    sp.style.left = (e.clientX - r.left - d / 2) + 'px';
+    sp.style.top = (e.clientY - r.top - d / 2) + 'px';
+    btn.appendChild(sp);
+    setTimeout(function () { if (sp.parentNode) sp.parentNode.removeChild(sp); }, 660);
+  });
+
+  /* --- 3. 3D-наклон карточек объектов + блик (делегирование: работает после фильтров) --- */
+  (function () {
+    if (!fine() || reduced()) return;
+    var current = null, ticking = false, lastX = 0, lastY = 0;
+    function release(card) {
+      if (!card) return;
+      card.classList.remove('tilting');
+      card.style.transform = '';
+    }
+    function apply() {
+      ticking = false;
+      if (!current) return;
+      var r = current.getBoundingClientRect();
+      var x = (lastX - r.left) / r.width - .5;
+      var y = (lastY - r.top) / r.height - .5;
+      current.style.transform = 'perspective(950px) rotateX(' + (-y * 5).toFixed(2) +
+        'deg) rotateY(' + (x * 6.5).toFixed(2) + 'deg) translateY(-5px)';
+      current.style.setProperty('--mx', ((x + .5) * 100).toFixed(1) + '%');
+      current.style.setProperty('--my', ((y + .5) * 100).toFixed(1) + '%');
+    }
+    document.addEventListener('mousemove', function (e) {
+      var card = e.target.closest ? e.target.closest('.card') : null;
+      if (card !== current) { release(current); current = card; if (current) current.classList.add('tilting'); }
+      if (!current) return;
+      lastX = e.clientX; lastY = e.clientY;
+      if (!ticking) { ticking = true; requestAnimationFrame(apply); }
+    }, { passive: true });
+    document.addEventListener('mouseleave', function () { release(current); current = null; });
+  })();
+
+  /* --- 4. «Магнитные» кнопки первого экрана --- */
+  (function () {
+    if (!fine() || reduced()) return;
+    var btns = document.querySelectorAll('.hero-acts .btn');
+    Array.prototype.forEach.call(btns, function (b) {
+      b.addEventListener('mousemove', function (e) {
+        var r = b.getBoundingClientRect();
+        var x = e.clientX - r.left - r.width / 2;
+        var y = e.clientY - r.top - r.height / 2;
+        b.style.transform = 'translate(' + (x * .16).toFixed(1) + 'px,' + (y * .3 - 2).toFixed(1) + 'px)';
+      });
+      b.addEventListener('mouseleave', function () { b.style.transform = ''; });
+    });
+  })();
+
+  /* --- 5. Неоновое свечение за курсором (только мышь) --- */
+  (function () {
+    if (!fine() || reduced()) return;
+    var g = document.createElement('div');
+    g.className = 'cursor-glow';
+    g.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(g);
+    var tx = -500, ty = -500, cx = -500, cy = -500, raf = null;
+    function loop() {
+      cx += (tx - cx) * .12; cy += (ty - cy) * .12;
+      g.style.transform = 'translate3d(' + (cx - 210).toFixed(1) + 'px,' + (cy - 210).toFixed(1) + 'px,0)';
+      raf = (Math.abs(tx - cx) > .4 || Math.abs(ty - cy) > .4) ? requestAnimationFrame(loop) : null;
+    }
+    document.addEventListener('mousemove', function (e) {
+      tx = e.clientX; ty = e.clientY;
+      if (!raf) raf = requestAnimationFrame(loop);
+    }, { passive: true });
+    document.addEventListener('mouseleave', function () {
+      tx = -500; ty = -500;
+      if (!raf) raf = requestAnimationFrame(loop);
+    });
+  })();
+})();
+
+/* =====================================================================
+   Ипотечный калькулятор + интерактивная карта районов (2026-10-14).
+   Карта дружит с существующим фильтром #f-district: клик по району
+   отправляет select'у событие change — каталог фильтруется штатно.
+   ===================================================================== */
+(function () {
+  'use strict';
+  function $(s) { return document.querySelector(s); }
+  function fmt(n) { return Math.round(n).toLocaleString('ru-RU'); }
+  function plural(n, a, b, c) {
+    var m = n % 100, k = n % 10;
+    if (m > 10 && m < 20) return c;
+    if (k === 1) return a;
+    if (k > 1 && k < 5) return b;
+    return c;
+  }
+
+  /* ---------- 1. Калькулятор ипотеки ---------- */
+  var price = $('#c-price'), down = $('#c-down'), years = $('#c-years'), rate = $('#c-rate');
+  if (price && down && years && rate) {
+    var oPrice = $('#c-price-out'), oDown = $('#c-down-out'), oYears = $('#c-years-out'), oRate = $('#c-rate-out');
+    var oMonthly = $('#c-monthly'), oLoan = $('#c-loan'), oOver = $('#c-over'), oTotal = $('#c-total');
+    var downHint = $('#c-down-hint');
+    var monthlyShown = 0, tweenRaf = null;
+
+    function setFill(inp) {
+      var min = +inp.min, max = +inp.max, v = +inp.value;
+      inp.style.setProperty('--fill', ((v - min) / (max - min) * 100).toFixed(2) + '%');
+    }
+
+    function tweenMonthly(to) {
+      if (tweenRaf) cancelAnimationFrame(tweenRaf);
+      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduce || Math.abs(to - monthlyShown) < 2) {
+        monthlyShown = to; oMonthly.textContent = fmt(to) + ' ₽'; return;
+      }
+      var from = monthlyShown, start = performance.now(), dur = 260;
+      (function step(t) {
+        var p = Math.min(1, (t - start) / dur);
+        p = 1 - Math.pow(1 - p, 3);
+        monthlyShown = from + (to - from) * p;
+        oMonthly.textContent = fmt(monthlyShown) + ' ₽';
+        if (p < 1) tweenRaf = requestAnimationFrame(step);
+      })(start);
+    }
+
+    function recalc() {
+      var P = +price.value, dp = +down.value, Y = +years.value, R = +rate.value;
+      var downSum = P * dp / 100;
+      var loan = Math.max(0, P - downSum);
+      var n = Y * 12, r = R / 100 / 12, monthly;
+      if (loan <= 0) monthly = 0;
+      else if (r === 0) monthly = loan / n;
+      else monthly = loan * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+
+      oPrice.textContent = fmt(P) + ' ₽';
+      oDown.textContent = fmt(downSum) + ' ₽ · ' + dp + '%';
+      oYears.textContent = Y + ' ' + plural(Y, 'год', 'года', 'лет');
+      oRate.textContent = String(R).replace('.', ',') + '%';
+      oLoan.textContent = fmt(loan) + ' ₽';
+      oOver.textContent = fmt(Math.max(0, monthly * n - loan)) + ' ₽';
+      oTotal.textContent = fmt(monthly * n) + ' ₽';
+      tweenMonthly(monthly);
+      if (downHint) downHint.hidden = dp >= 15;
+      [price, down, years, rate].forEach(setFill);
+    }
+
+    [price, down, years, rate].forEach(function (inp) {
+      inp.addEventListener('input', recalc);
+      setFill(inp);
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll('.calc-prog'), function (b) {
+      b.addEventListener('click', function () {
+        var v = b.getAttribute('data-rate');
+        if (v) rate.value = v; else rate.focus();
+        recalc();
+        Array.prototype.forEach.call(document.querySelectorAll('.calc-prog'), function (x) { x.classList.remove('on'); });
+        if (v) b.classList.add('on');
+      });
+    });
+
+    var apply = $('#c-apply');
+    if (apply) apply.addEventListener('click', function () {
+      var P = +price.value, dp = +down.value, Y = +years.value, R = +rate.value;
+      var want = $('#ld-want'); if (want) want.value = 'Помощь с ипотекой';
+      var budget = $('#ld-budget');
+      if (budget) budget.value = 'Ипотека: объект ~' + fmt(P) + ' ₽, взнос ' + fmt(P * dp / 100) + ' ₽ (' + dp + '%), ' + Y + ' ' + plural(Y, 'год', 'года', 'лет') + ', ставка ' + String(R).replace('.', ',') + '%';
+      var msg = $('#ld-message');
+      if (msg) msg.value = 'Расчёт с сайта: ежемесячный платёж ' + fmt(monthlyShown) + ' ₽, сумма кредита ' + fmt(Math.max(0, P - P * dp / 100)) + ' ₽. Прошу помочь с одобрением и подбором программы.';
+      var lead = $('#lead');
+      if (lead) lead.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(function () { var nm = $('#ld-name'); if (nm) nm.focus({ preventScroll: true }); }, 750);
+    });
+
+    recalc();
+  }
+
+})();
+
+/* =====================================================================
+   Предложения банков: платёж в каждой карточке пересчитывается живьём
+   под параметры калькулятора; «Посчитать с этой ставкой» подставляет
+   ставку банка в общий расчёт. Данные: обзор ДОМ.РФ, октябрь 2026.
+   ===================================================================== */
+(function () {
+  'use strict';
+  var strip = document.getElementById('bank-strip');
+  var price = document.getElementById('c-price');
+  var down = document.getElementById('c-down');
+  var years = document.getElementById('c-years');
+  var rate = document.getElementById('c-rate');
+  if (!strip || !price || !down || !years || !rate) return;
+
+  function fmt(n) { return Math.round(n).toLocaleString('ru-RU'); }
+  function annuity(loan, n, R) {
+    if (loan <= 0) return 0;
+    var r = R / 100 / 12;
+    if (r === 0) return loan / n;
+    return loan * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+  }
+  function effectiveRate(card) {
+    var sel = card.querySelector('select');
+    return +(sel ? sel.value : card.getAttribute('data-rate'));
+  }
+  function update() {
+    var P = +price.value, dp = +down.value, n = +years.value * 12;
+    var loan = Math.max(0, P - P * dp / 100);
+    Array.prototype.forEach.call(strip.querySelectorAll('.bank-card'), function (card) {
+      var R = effectiveRate(card);
+      var out = card.querySelector('[data-pay]');
+      if (out) out.textContent = fmt(annuity(loan, n, R)) + ' ₽/мес';
+      var ro = card.querySelector('[data-rate-out]');
+      if (ro) ro.textContent = String(R).replace('.', ',') + '%';
+    });
+  }
+
+  [price, down, years, rate].forEach(function (inp) {
+    inp.addEventListener('input', update);
+  });
+  Array.prototype.forEach.call(strip.querySelectorAll('select'), function (s) {
+    s.addEventListener('change', update);
+  });
+  /* чипы программ меняют ставку без события input — обновляем следом */
+  Array.prototype.forEach.call(document.querySelectorAll('.calc-prog'), function (b) {
+    b.addEventListener('click', function () { setTimeout(update, 0); });
+  });
+  Array.prototype.forEach.call(strip.querySelectorAll('.bank-use'), function (b) {
+    b.addEventListener('click', function () {
+      var card = b.closest('.bank-card');
+      if (!card) return;
+      rate.value = String(effectiveRate(card));
+      rate.dispatchEvent(new Event('input', { bubbles: true }));
+      Array.prototype.forEach.call(document.querySelectorAll('.calc-prog'), function (x) { x.classList.remove('on'); });
+      rate.focus({ preventScroll: true });
+    });
+  });
+  update();
+})();

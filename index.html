@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="ru">
 <head>
@@ -9,15 +10,16 @@
   <meta name="keywords" content="агентство недвижимости Санкт-Петербург, купить квартиру СПб, продать квартиру Рыбацкое, аренда квартир Невский район, вторичное жильё, дачи и коттеджи, коммерческая недвижимость, элитная недвижимость, срочный выкуп квартиры, оценка недвижимости, сопровождение сделок, помощь юриста, ипотека материнский капитал, новостройки Янино, агентство Атланта">
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#08090D">
+  <link rel="icon" type="image/png" href="favicon.png">
   <meta name="color-scheme" content="dark">
   <!-- Когда будет свой домен — вписать его здесь и в og:url -->
-  <link rel="canonical" href="https://ДОМЕН-АГЕНТСТВА.ru/">
+  <link rel="canonical" href="https://venera0207.github.io/atlantaspb/"> <!-- замените на боевой домен агентства, когда он появится -->
 
   <meta property="og:type" content="website">
   <meta property="og:locale" content="ru_RU">
   <meta property="og:title" content="АН «Атланта» — недвижимость Санкт-Петербурга, 30 лет на рынке">
   <meta property="og:description" content="Продажа, покупка, аренда квартир и новостройки. Одобрение ипотеки любой сложности. Сопровождение сделки от первого звонка до передачи ключей.">
-  <meta property="og:url" content="https://ДОМЕН-АГЕНТСТВА.ru/">
+  <meta property="og:url" content="https://venera0207.github.io/atlantaspb/">
   <meta property="og:site_name" content="АН «Атланта»">
   <!-- Обложка для предпросмотра ссылок (WhatsApp, Telegram, ВКонтакте):
        файл photos/og-cover.jpg, 1200×630, Нева и Зимний. Адрес абсолютный —
@@ -37,7 +39,7 @@
     "email": "atlanta-spb@yandex.ru",
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "Шлиссельбургский проспект, 24, корпус 1",
+      "streetAddress": "Шлиссельбургский проспект, 24, корпус 1, офис 389",
       "addressLocality": "Санкт-Петербург",
       "addressCountry": "RU"
     },
@@ -59,13 +61,14 @@
   <header class="hdr" id="hdr">
     <div class="container hdr-in">
       <a class="brand" href="#top" aria-label="АН «Атланта» — на главную">
-        <span class="brand-mark" aria-hidden="true">А</span>
+        <img class="brand-logo" src="photos/logo.png" alt="" aria-hidden="true">
         <span>Атланта<small>Недвижимость СПб · с 1995</small></span>
       </a>
 
       <nav class="nav" id="nav" aria-label="Основная навигация">
         <a href="#objects">Объекты</a>
         <a href="#services">Услуги</a>
+        <a href="#calc">Ипотека</a>
         <a href="#director">Об агентстве</a>
         <a href="#reviews">Отзывы</a>
         <a href="#contacts">Контакты</a>
@@ -94,7 +97,6 @@
         <source src="hero.mp4" type="video/mp4">
       </video>
       <div class="hero-fallback" aria-hidden="true"></div>
-      <div class="hero-veil" aria-hidden="true"></div>
 
       <div class="container hero-in">
         <p class="eyebrow" id="hero-eyebrow">Недвижимость Санкт-Петербурга и области</p>
@@ -111,7 +113,7 @@
       </div>
 
       <div class="hero-foot">
-        <span data-address>Санкт-Петербург, Шлиссельбургский проспект, 24, корпус 1</span>
+        <span data-address>Санкт-Петербург, Шлиссельбургский проспект, 24, корпус 1, офис 389</span>
         <span class="hero-scroll" data-metro>8 минут пешком от метро «Рыбацкое»</span>
       </div>
       <!-- Тихая подсказка «страница продолжается»: линия с бегущей точкой -->
@@ -200,9 +202,128 @@
     </section>
 
     <!-- ================= ДИРЕКТОР ================= -->
+    <section class="sec" id="calc" aria-labelledby="calc-title">
+      <div class="container">
+        <div class="sec-head"><span class="sec-num">03</span><span class="eyebrow">Ипотека</span></div>
+        <h2 class="sec-title" id="calc-title">Рассчитайте ипотеку за минуту</h2>
+        <p class="sec-sub">Двигайте ползунки — цифры меняются сразу. Поможем получить одобрение банка даже в сложной ситуации: семейная и IT-ипотека, материнский капитал, жилищные и военные сертификаты, субсидии. Расчёт предварительный — финальные условия зависят от банка и дохода.</p>
+
+        <div class="calc">
+          <div class="calc-in">
+            <div class="calc-field">
+              <div class="calc-top"><label for="c-price">Стоимость недвижимости</label><output id="c-price-out" for="c-price">7 000 000 ₽</output></div>
+              <input type="range" id="c-price" min="500000" max="60000000" step="50000" value="7000000">
+              <div class="calc-scale"><span>500 тыс. ₽</span><span>60 млн ₽</span></div>
+            </div>
+            <div class="calc-field">
+              <div class="calc-top"><label for="c-down">Первый взнос</label><output id="c-down-out" for="c-down">1 400 000 ₽ · 20%</output></div>
+              <input type="range" id="c-down" min="0" max="90" step="1" value="20">
+              <div class="calc-scale"><span>0%</span><span>90%</span></div>
+              <p class="calc-hint" id="c-down-hint" hidden>Большинство банков просят от 15–20% взноса. Часть можно покрыть материнским капиталом — подскажем на бесплатной консультации.</p>
+            </div>
+            <div class="calc-row2">
+              <div class="calc-field">
+                <div class="calc-top"><label for="c-years">Срок</label><output id="c-years-out" for="c-years">20 лет</output></div>
+                <input type="range" id="c-years" min="1" max="30" step="1" value="20">
+                <div class="calc-scale"><span>1 год</span><span>30 лет</span></div>
+              </div>
+              <div class="calc-field">
+                <div class="calc-top"><label for="c-rate">Ставка</label><output id="c-rate-out" for="c-rate">6%</output></div>
+                <input type="range" id="c-rate" min="0.5" max="25" step="0.01" value="6">
+                <div class="calc-scale"><span>0,5%</span><span>25%</span></div>
+              </div>
+            </div>
+            <div class="calc-progs">
+              <span class="calc-progs-title">Программы:</span>
+              <button type="button" class="chip calc-prog on" data-rate="6">Семейная — 6% · при взносе от 50%</button>
+              <button type="button" class="chip calc-prog" data-rate="5">IT — 5%</button>
+              <button type="button" class="chip calc-prog" data-rate="">Рыночная — выберите сами</button>
+            </div>
+          </div>
+
+          <div class="calc-out">
+            <p class="calc-out-label">Ежемесячный платёж</p>
+            <p class="calc-out-main" id="c-monthly" aria-live="polite">—</p>
+            <ul class="calc-out-list">
+              <li><span>Сумма кредита</span><b id="c-loan">—</b></li>
+              <li><span>Переплата за весь срок</span><b id="c-over">—</b></li>
+              <li><span>Всего выплатите банку</span><b id="c-total">—</b></li>
+            </ul>
+            <button type="button" class="btn btn-accent calc-apply" id="c-apply">Бесплатная консультация по ипотеке ↓</button>
+            <p class="calc-note">Наш ипотечный брокер поможет получить одобрение банка: подберёт программу под вашу ситуацию, соберёт и подаст документы. Услуга бесплатна; кнопка выше перенесёт этот расчёт в форму консультации ниже — останется указать имя и телефон.</p>
+            <p class="calc-note">Хотите сравнить предложения банков самостоятельно? <a class="link-u" href="https://www.banki.ru/products/hypothec/" target="_blank" rel="noopener">Подбор ипотеки на Банки.ру ↗</a></p>
+          </div>
+        </div>
+
+        <div class="bank-strip" id="bank-strip">
+          <div class="bank-head">
+            <h3>Предложения банков <span class="bank-asof">ставки на октябрь 2026</span></h3>
+            <p class="hint">Платёж в каждой карточке пересчитывается живьём под ваши параметры. Нажмите «Посчитать с этой ставкой» — она подставится в калькулятор выше.</p>
+          </div>
+          <div class="bank-grid">
+            <div class="bank-card" data-rate="18.7">
+              <p class="bank-name">Сбербанк</p>
+              <p class="bank-prog">Рыночная программа: новостройки и вторичка</p>
+              <p class="bank-rate">от <b>18,7%</b></p>
+              <p class="bank-pay">платёж <span data-pay>—</span></p>
+              <button type="button" class="btn btn-sm bank-use">Посчитать с этой ставкой</button>
+            </div>
+            <div class="bank-card" data-rate="19.4">
+              <p class="bank-name">ВТБ</p>
+              <p class="bank-prog">Рыночная программа: новостройки и вторичка</p>
+              <p class="bank-rate">от <b>19,4%</b></p>
+              <p class="bank-pay">платёж <span data-pay>—</span></p>
+              <button type="button" class="btn btn-sm bank-use">Посчитать с этой ставкой</button>
+            </div>
+            <div class="bank-card bank-best-card" data-rate="16.9">
+              <p class="bank-name">Т-Банк <span class="bank-best">выгодная ставка</span></p>
+              <p class="bank-prog">Рыночная программа: новостройки и вторичка</p>
+              <p class="bank-rate">от <b>16,9%</b></p>
+              <p class="bank-pay">платёж <span data-pay>—</span></p>
+              <button type="button" class="btn btn-sm bank-use">Посчитать с этой ставкой</button>
+            </div>
+            <div class="bank-card" data-rate="19.09">
+              <p class="bank-name">Альфа-Банк</p>
+              <p class="bank-prog">Рыночная программа: новостройки и вторичка</p>
+              <p class="bank-rate">от <b>19,09%</b></p>
+              <p class="bank-pay">платёж <span data-pay>—</span></p>
+              <button type="button" class="btn btn-sm bank-use">Посчитать с этой ставкой</button>
+            </div>
+            <div class="bank-card bank-family">
+              <p class="bank-name">Семейная ипотека</p>
+              <p class="bank-prog">Во всех крупных банках. Ставка зависит от числа детей — правила действуют с 1 октября 2026</p>
+              <label class="bank-kids">Детей в семье:
+                <select>
+                  <option value="12">1 ребёнок — 12%</option>
+                  <option value="10" selected>2 ребёнка — 10%</option>
+                  <option value="8">3 ребёнка — 8%</option>
+                  <option value="6">4 ребёнка — 6%</option>
+                  <option value="4">5 и больше — 4%</option>
+                  <option value="6">Взнос от 50% — 6% (детей любое)</option>
+                </select>
+              </label>
+              <p class="bank-rate">ставка <b data-rate-out>10%</b></p>
+              <p class="bank-pay">платёж <span data-pay>—</span></p>
+              <button type="button" class="btn btn-sm bank-use">Посчитать с этой ставкой</button>
+              <p class="bank-note">Хотя бы один ребёнок — младше 7 лет. Лимиты в СПб и Ленобласти: 12–18 млн ₽ в зависимости от числа детей. Срок субсидирования — до 15 лет.</p>
+            </div>
+            <div class="bank-card" data-rate="6">
+              <p class="bank-name">IT-ипотека</p>
+              <p class="bank-prog">Для сотрудников аккредитованных IT-компаний. Взнос от 20%, можно материнский капитал</p>
+              <p class="bank-rate">до <b>6%</b></p>
+              <p class="bank-pay">платёж <span data-pay>—</span></p>
+              <button type="button" class="btn btn-sm bank-use">Посчитать с этой ставкой</button>
+              <p class="bank-note">Не действует для жилья в границах Санкт-Петербурга — работает для объектов в Ленинградской области.</p>
+            </div>
+          </div>
+          <p class="bank-disclaimer">Ставки справочные — по обзору ДОМ.РФ на 7 октября 2026: рыночные от 15,9% до 19,4%, средневзвешенная ~18,7%. Итоговую ставку банк определяет индивидуально: от подтверждённого дохода, страховки, зарплатного проекта и акций застройщика. Наш ипотечный брокер поможет выбрать выгодную комбинацию программ и банков — консультация бесплатна.</p>
+        </div>
+      </div>
+    </section>
+
     <section class="sec" id="director" aria-labelledby="director-title">
       <div class="container">
-        <div class="sec-head"><span class="sec-num">03</span><span class="eyebrow">Об агентстве</span></div>
+        <div class="sec-head"><span class="sec-num">04</span><span class="eyebrow">Об агентстве</span></div>
 
         <div class="dir">
           <div class="dir-photo">
@@ -256,7 +377,7 @@
     <!-- ================= ОТЗЫВЫ ================= -->
     <section class="sec" id="reviews" aria-labelledby="reviews-title" style="background:linear-gradient(180deg,transparent,rgba(17,19,26,.7),transparent)">
       <div class="container">
-        <div class="sec-head"><span class="sec-num">04</span><span class="eyebrow">Отзывы клиентов</span></div>
+        <div class="sec-head"><span class="sec-num">05</span><span class="eyebrow">Отзывы клиентов</span></div>
         <h2 class="sec-title" id="reviews-title">Нас рекомендуют близким</h2>
         <p class="sec-sub" style="margin-bottom:34px">Клиенты присылают отзывы на почту или в WhatsApp — так они и попадают на сайт.</p>
 
@@ -324,7 +445,7 @@
     <!-- ================= ЗАЯВКИ ================= -->
     <section class="sec" id="lead" aria-labelledby="lead-title">
       <div class="container">
-        <div class="sec-head"><span class="sec-num">05</span><span class="eyebrow">Заявки</span></div>
+        <div class="sec-head"><span class="sec-num">06</span><span class="eyebrow">Заявки</span></div>
         <h2 class="sec-title" id="lead-title">Два способа начать разговор</h2>
         <p class="sec-sub" style="margin-bottom:34px">Заполните форму — письмо придёт прямо в почту агентства. Или позвоните: телефон отвечает быстрее всего.</p>
 
@@ -338,7 +459,7 @@
                 <option>Купить квартиру</option>
                 <option>Купить новостройку</option>
                 <option>Снять квартиру</option>
-                <option>Одобрить ипотеку</option>
+                <option>Помощь с ипотекой</option>
                 <option>Обмен / встречная покупка</option>
                 <option>Другой вопрос</option>
               </select>
@@ -411,7 +532,7 @@
     <!-- ================= КОНТАКТЫ ================= -->
     <section class="sec" id="contacts" aria-labelledby="contacts-title">
       <div class="container">
-        <div class="sec-head"><span class="sec-num">06</span><span class="eyebrow">Контакты</span></div>
+        <div class="sec-head"><span class="sec-num">07</span><span class="eyebrow">Контакты</span></div>
         <h2 class="sec-title" id="contacts-title">Приезжайте или звоните</h2>
 
         <div class="form-wrap">
@@ -419,7 +540,7 @@
             <li><span class="k">Телефон</span><span class="v"><a href="tel:+79110055741" data-tel>+7 911 005-57-41</a></span></li>
             <li><span class="k">WhatsApp</span><span class="v"><a data-wa target="_blank" rel="noopener" href="https://wa.me/79110055741">Написать в мессенджер</a></span></li>
             <li><span class="k">Почта</span><span class="v"><a data-email href="mailto:atlanta-spb@yandex.ru">atlanta-spb@yandex.ru</a></span></li>
-            <li><span class="k">Офис</span><span class="v" data-address>Санкт-Петербург, Шлиссельбургский проспект, 24, корпус 1</span></li>
+            <li><span class="k">Офис</span><span class="v" data-address>Санкт-Петербург, Шлиссельбургский проспект, 24, корпус 1, офис 389</span></li>
             <li><span class="k">Как добраться</span><span class="v" data-metro>8 минут пешком от метро «Рыбацкое»</span></li>
             <li><span class="k">Часы работы</span><span class="v" data-hours>Будни: 10:00–20:00; суббота и воскресенье: 10:00–18:00</span></li>
             <li><span class="k">Руководитель</span><span class="v">Раиса Ивановна Каштанова</span></li>
@@ -433,7 +554,7 @@
             </div>
             <p class="form-note" style="margin-top:14px">
               Если карта не открылась, введите адрес в Яндекс Картах:
-              <span data-address>Санкт-Петербург, Шлиссельбургский проспект, 24, корпус 1</span>.
+              <span data-address>Санкт-Петербург, Шлиссельбургский проспект, 24, корпус 1, офис 389</span>.
             </p>
           </div>
         </div>
@@ -449,6 +570,7 @@
           <b>Агентство</b>
           <a href="#objects">Объекты</a>
           <a href="#services">Услуги</a>
+          <a href="#calc">Ипотека</a>
           <a href="#director">Об агентстве</a>
           <a href="#reviews">Отзывы</a>
         </div>
