@@ -42,6 +42,52 @@
   function byType(t) { return activeObjects().filter(function (o) { return o.type === t; }); }
   function byDistrict(d) { return activeObjects().filter(function (o) { return o.district === d; }); }
 
+  /* ---------- карточка объекта: этаж, площадь и цена из живого каталога ----------
+     Вопрос про КОНКРЕТНЫЙ объект («какой этаж в ЖК Viva?») не должен превращаться
+     в общую выдачу каталога: бот показывает карточку объекта и ведёт к контакту. */
+  var STOP_WORDS = { 'квартира':1,'квартиры':1,'квартиру':1,'квартир':1,'квартира,':1,'дом':1,'дома':1,'жк':1,'гк':1,'проспект':1,'улица':1,'метро':1,'район':1,'в':1,'на':1,'у':1,'и':1,'с':1,'от':1,'до':1,'для':1,'за':1,'по':1,'или':1,'а':1,'к':1,'из':1,'о':1,'что':1,'как':1,'какой':1,'какая':1,'какое':1,'сколько':1,'этот':1,'эта':1,'это':1,'ваш':1,'ваша':1,'сейчас':1,'есть':1,'купить':1,'снять':1,'объект':1,'объекта':1,'вариант':1,'новостройка':1,'новостройки':1,'срочно':1,'купим':1,'снимем':1,'хозяина':1,'клиента':1,'продать':1,'продается':1,'продаётся':1,'сдаётся':1,'сдается':1,'продают':1,'ищут':1 };
+  var PLACE_WORDS = ['novogorelovo', 'yanino', 'rybatskoe', 'peterburg', 'novogorelovoe'];
+  function titleWords(o) {
+    return norm(o.title).split(' ').filter(function (w) {
+      if (w.length < 4 || STOP_WORDS[w]) return false;
+      for (var i = 0; i < PLACE_WORDS.length; i++) if (w === PLACE_WORDS[i]) return false;
+      return true;
+    });
+  }
+  function findObject(q) {
+    var t = norm(q), best = null, bestScore = 0;
+    activeObjects().forEach(function (o) {
+      var sc = 0;
+      titleWords(o).forEach(function (w) { if (t.indexOf(w) !== -1) sc += w.length; });
+      if (sc > bestScore) { bestScore = sc; best = o; }
+    });
+    return bestScore >= 4 ? best : null;
+  }
+  var ATTR_WORDS = ['этаж', 'планиров', 'площад', 'метраж', 'квадратн', 'сколько метров', 'балкон', 'лоджи', 'ремонт', 'сдан', 'сдача', 'год постройки', 'санузел', 'вид из', 'потолк', 'кухня'];
+  function asksAttr(q) {
+    var t = norm(q);
+    for (var i = 0; i < ATTR_WORDS.length; i++) if (t.indexOf(ATTR_WORDS[i]) !== -1) return true;
+    return false;
+  }
+  var CARD_LEAD = 'Расскажу подробнее и запишу на показ: оставьте телефон или @telegram — передам ваш вопрос менеджеру агентства, и она перезвонит.';
+  var GEN_DETAIL = 'Такие детали по объекту (этаж, площадь, планировка, документы) подскажет менеджер агентства — по каждой карточке каталога они есть. Оставьте телефон или @telegram: передам ваш вопрос, и менеджер перезвонит с ответом.';
+  function cardReply(o) {
+    var attrs = [];
+    if (o.area) attrs.push(o.area + ' м²');
+    if (o.floor && ['—', 'уточняется', 'есть выбор'].indexOf(o.floor) === -1) attrs.push('этаж ' + o.floor);
+    attrs.push(priceOf(o));
+    var extra = '';
+    if (o.floor === 'уточняется') extra = ' Точный этаж уточнит менеджер.';
+    if (o.floor === 'есть выбор') extra = ' Этажи на выбор — менеджер подскажет свободные.';
+    return '«' + o.title + '»' + (o.district ? ', ' + o.district : '') + ': ' + attrs.join(', ') + '.' + extra + '\n\n' + CARD_LEAD;
+  }
+  function objectCard(q) {
+    var o = findObject(q);
+    if (o) return cardReply(o);
+    if (asksAttr(q)) return GEN_DETAIL;
+    return null;
+  }
+
   /* ---------- база знаний ---------- */
   var KB = [
     { k: ['здравств', 'привет', 'добрый день', 'добрый вечер', 'хай'], s: 1,
@@ -129,6 +175,7 @@
 
   var GREETING = 'Привет! Я ИИ-ассистент «Атланты». Отвечаю про объекты каталога, ипотеку, продажу, аренду и контакты агентства. Что вас интересует?';
   var HOOK_TAIL = 'Если актуально — передам наш диалог менеджеру агентства: она перезвонит и всё расскажет лично. Просто оставьте контакт.';
+  var SOFT_TAIL = 'Оставите телефон или @telegram — передам этот вопрос менеджеру агентства, и она перезвонит вам лично.';
   var FLOOR = 'По этому вопросу мне нужна помощь менеджера агентства. Оставьте контакт (телефон или @telegram) — вам перезвонят в рабочее время. А пока подскажу по объектам, ипотеке, продаже, аренде и контактам.';
 
   /* ---------- служебное ---------- */
@@ -361,12 +408,29 @@
         );
         return;
       }
+      /* ждём контакт, но не ругаем за осмысленный вопрос или «спасибо»:
+         выходим из режима ожидания и отвечаем как обычно */
       var kbNow = kbMatch(text);
-      if (!kbNow) {
+      if (!kbNow && !objectCard(text) && !socialMatch(text)) {
         U.agent('Похоже, это не контакт 🙂 Оставьте телефон (например, +7 9XX XXX-XX-XX) или @ник в Telegram — или напишите «отмена».');
         return;
       }
       state.await = null;
+    }
+
+    var card = objectCard(text);
+    if (card) {
+      U.typing(true);
+      setTimeout(function () {
+        U.typing(false);
+        U.agent(card);
+        pushH('agent', card);
+        log(text, card, 'kb-object');
+        state.lastExchange = 'Клиент: ' + text + ' | Бот: ' + card;
+        state.dialog = state.lastExchange;
+        state.await = 'esc_contact';
+      }, 450 + Math.round(Math.random() * 450));
+      return;
     }
 
     var intent = kbMatch(text);
@@ -385,9 +449,9 @@
           state.await = 'esc_contact';
           U.agent('Подскажите, как с вами связаться — телефон или @telegram — и я передам диалог менеджеру прямо сейчас.');
           sendAlert('Горячий вопрос клиента Атланты: «' + text + '». Диалог в журнале, ждём контакт.');
-        } else if (intent.c && !state.hookUsed) {
-          state.hookUsed = true;
-          U.agent(HOOK_TAIL);
+        } else if (intent.c) {
+          if (!state.hookUsed) { state.hookUsed = true; U.agent(HOOK_TAIL); }
+          else U.agent(SOFT_TAIL);
           state.dialog = state.lastExchange;
           state.await = 'esc_contact';
         }
@@ -433,6 +497,7 @@
   /* крючки для самопроверок */
   window.ATLANTA_KB = {
     kb: function (t) { var m = kbMatch(t); if (!m) return null; return typeof m.a === 'function' ? m.a(t) : m.a; },
+    card: function (t) { return objectCard(t); },
     handle: function (t) { handle(t); }
   };
 })();
