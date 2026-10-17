@@ -236,25 +236,56 @@
     document.body.appendChild(script);
   }
 
+  /* Отправка в трубу: основной путь — POST (fetch, режим no-cors): в отличие
+     от GET у него нет ограничения на длину адреса, поэтому тексты диалогов
+     доходят до таблицы ПОЛНОСТЬЮ. Ответ при no-cors не читается — для журнала
+     он и не нужен; для заявки успехом считаем сам факт доставки на сервер. */
+  function sendPipe(payload, handlers) {
+    if (!PIPE_URL) { handlers && handlers.fail && handlers.fail(); return; }
+    if (window.fetch) {
+      fetch(PIPE_URL, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        body: JSON.stringify(payload)
+      }).then(function () { handlers && handlers.ok && handlers.ok({ ok: true }); },
+              function () { sendPipeGet_(payload, handlers); });
+    } else {
+      sendPipeGet_(payload, handlers);
+    }
+  }
+  /* Запасной путь (очень старые браузеры или сбой POST): запрос GET,
+     длинные тексты укорачиваем, чтобы адрес уместился в предел. */
+  function sendPipeGet_(payload, handlers) {
+    var q = [];
+    for (var k in payload) {
+      if (Object.prototype.hasOwnProperty.call(payload, k)) {
+        q.push(encodeURIComponent(k) + '=' + encodeURIComponent(String(payload[k]).slice(0, 300)));
+      }
+    }
+    jsonp(PIPE_URL + '?' + q.join('&'), 20000, handlers || {});
+  }
+
   function sendLead(payload, onOk, onFail) {
     if (!PIPE_URL) { onFail && onFail(); return; }
-    jsonp(PIPE_URL + '?action=lead&name=' + encodeURIComponent(payload.name || '') +
-      '&contact=' + encodeURIComponent(payload.contact || '') +
-      '&message=' + encodeURIComponent(payload.message || '') +
-      '&source=' + encodeURIComponent(payload.source || ('atlanta-' + location.hostname)), 25000,
-      { ok: function (d) { if (d && d.ok) { log('', payload.message || '', 'lead'); onOk && onOk(); } else onFail && onFail(); },
+    sendPipe({ action: 'lead', name: payload.name || '', contact: payload.contact || '',
+               message: payload.message || '', source: payload.source || ('atlanta-' + location.hostname) },
+      { ok: function () {
+          log((payload.name ? payload.name + ' / ' : '') + payload.contact + ' / ' + (payload.message || ''),
+              'Заявка принята: менеджер свяжется с клиентом.', 'lead');
+          onOk && onOk();
+        },
         fail: function () { onFail && onFail(); }, timeout: function () { onFail && onFail(); } });
   }
   function sendAlert(text) {
     if (!PIPE_URL) return;
-    jsonp(PIPE_URL + '?action=alert&text=' + encodeURIComponent(text), 15000, {});
+    sendPipe({ action: 'alert', text: text }, {});
   }
+  /* Запись в журнал диалогов: вопрос клиента, ПОЛНЫЙ ответ бота и тема ответа.
+     Тема (outcome) — короткий код; труба сама превращает его в русский ярлык. */
   function log(client, bot, outcome) {
     if (!PIPE_URL) return;
-    jsonp(PIPE_URL + '?action=log&page=' + encodeURIComponent(location.pathname || '') +
-      '&client=' + encodeURIComponent(String(client).slice(0, 300)) +
-      '&bot=' + encodeURIComponent(String(bot).slice(0, 300)) +
-      '&outcome=' + encodeURIComponent(outcome), 15000, {});
+    sendPipe({ action: 'log', page: location.pathname || '',
+               client: String(client).slice(0, 1500), bot: String(bot).slice(0, 3000), outcome: outcome }, {});
   }
 
   /* ---------- интерфейс виджета ---------- */
