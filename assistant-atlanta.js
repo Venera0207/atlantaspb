@@ -321,6 +321,11 @@
       '.aa-input input:focus{outline:none;border-color:var(--accent-2,#22D3EE);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent-2,#22D3EE) 18%,transparent)}' +
       '.aa-input button{border:none;border-radius:10px;background:linear-gradient(135deg,var(--accent-2,#22D3EE),var(--accent,#8B5CF6));color:#fff;padding:10px 14px;cursor:pointer;font-weight:600;font-family:inherit}' +
       '@media (max-width:480px){.aa-btn{width:58px;height:58px}.aa-panel{right:12px;bottom:88px}}' +
+      /* Телефон 760px и уже: три плавающие кнопки стоя́т столбиком и не перекрывают друг друга:
+         внизу «Позвонить» (call-fab, bottom:18 из style.css), над ней ассистент, выше всех «наверх» */
+      '@media (max-width:760px){.aa-dock{right:16px;bottom:84px}.aa-panel{right:12px;bottom:162px;max-height:calc(100vh - 190px)}.to-top{bottom:162px}}' +
+      /* Компьютер: кнопка «наверх» поднимается над ассистентом, чтобы не прятаться за ним */
+      '@media (min-width:761px){.to-top{bottom:102px}}' +
       '@media (prefers-reduced-motion: reduce){.aa-btn{animation:none}}' +
       '.aa-panel.aa-inline{position:static;width:100%;height:560px;max-height:none;box-shadow:none}';
     document.head.appendChild(style);
@@ -340,6 +345,7 @@
     hint.textContent = 'Задайте вопрос — отвечу сразу';
     dock.appendChild(hint);
     setTimeout(function () { hint.classList.add('show'); }, 1600);
+    setTimeout(function () { hint.classList.remove('show'); }, 9600); /* подсказка живёт 8 секунд и не перекрывает контент навсегда */
     dock.appendChild(bubble);
     dock.appendChild(btn);
     var panel = document.createElement('div');
