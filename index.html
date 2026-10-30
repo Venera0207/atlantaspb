@@ -50,7 +50,7 @@
   </script>
   <!-- Telegram: tell the mini app "we're ready, show us" inside Telegram.
        Without this, the window with the site inside Telegram keeps showing gray squares. -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script defer src="https://telegram.org/js/telegram-web-app.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       try { if (window.Telegram && Telegram.WebApp && Telegram.WebApp.ready) Telegram.WebApp.ready(); } catch (e) {}

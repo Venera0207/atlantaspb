@@ -300,6 +300,8 @@
       '.aa-btn img{width:100%;height:100%;object-fit:cover;display:block}' +
       '.aa-btn .aa-fallback{display:grid;place-items:center;width:100%;height:100%;font-size:30px;background:linear-gradient(135deg,var(--accent-2,#22D3EE),var(--accent,#8B5CF6))}' +
       '@keyframes aaFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}' +
+      '.aa-hint{position:absolute;right:calc(100% + 10px);top:50%;transform:translateY(-50%);white-space:nowrap;background:var(--surface,#14141F);color:var(--text,#EDEDF2);border:1px solid color-mix(in srgb,var(--accent,#8B5CF6) 55%,transparent);border-radius:999px;padding:7px 12px;font-size:12px;font-weight:600;box-shadow:0 8px 20px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .6s ease}' +
+      '.aa-hint.show{opacity:1}' +
       '.aa-bubble{position:absolute;bottom:calc(100% + 12px);right:0;width:250px;background:var(--surface,#14141F);border:1px solid color-mix(in srgb,var(--accent,#8B5CF6) 55%,transparent);border-radius:14px;padding:12px 26px 12px 14px;color:var(--text,#EDEDF2);font-size:12.5px;line-height:1.45;display:none;box-shadow:0 12px 32px rgba(0,0,0,.4);cursor:pointer}' +
       '.aa-bubble.show{display:block}' +
       '.aa-bubble .x{position:absolute;top:5px;right:7px;background:none;border:none;color:var(--muted,#8b8b9a);cursor:pointer;font-size:14px;line-height:1}' +
@@ -333,6 +335,11 @@
     btn.type = 'button';
     btn.setAttribute('aria-label', 'Чат с ассистентом агентства «Атланта»');
     btn.innerHTML = '<img src="photos/logo.png" alt="" onerror="this.outerHTML=\'<span class=aa-fallback>🏛</span>\'">';
+    var hint = document.createElement('span');
+    hint.className = 'aa-hint';
+    hint.textContent = 'Задайте вопрос — отвечу сразу';
+    dock.appendChild(hint);
+    setTimeout(function () { hint.classList.add('show'); }, 1600);
     dock.appendChild(bubble);
     dock.appendChild(btn);
     var panel = document.createElement('div');
@@ -381,6 +388,7 @@
         return;
       }
       panel.classList.toggle('open');
+      hint.classList.remove('show');
       if (!opened && panel.classList.contains('open')) { opened = true; add('agent', GREETING); }
       if (panel.classList.contains('open')) input.focus();
     }
